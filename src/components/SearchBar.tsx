@@ -1,58 +1,53 @@
+import React, { useState, useRef } from "react";
 
-import React from 'react';
-import { Source } from '../types';
-
-interface SourceDetailProps {
-  source: Source;
-  onBack: () => void;
+interface SearchBarProps {
+  onSearch: (query: string) => void;
+  onUploadClick?: () => void;
+  onVoiceClick?: () => void;
+  isResultsPage?: boolean;
 }
 
-const SourceDetail: React.FC<SourceDetailProps> = ({ source, onBack }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUploadClick = () => {}, onVoiceClick = () => {}, isResultsPage = false }) => {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    onSearch(q);
+    setQuery("");
+  };
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 animate-fadeIn">
-      <button 
-        onClick={onBack}
-        className="flex items-center space-x-2 text-gray-400 hover:text-black transition-colors mb-8"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        <span className="text-sm">Back to results</span>
-      </button>
+    <div className={`fixed bottom-0 left-0 right-0 p-4 z-40 transition-all duration-300 ${isResultsPage ? "bg-white/90 backdrop-blur-md" : "bg-transparent"}`}>
+      <div className="max-w-3xl mx-auto">
+        <form onSubmit={handleSubmit} className="relative flex items-center bg-white border border-gray-200 rounded-[24px] px-5 py-3 shadow-sm">
+          <button type="button" onClick={onUploadClick} className="p-2 text-gray-400 hover:text-blue-500 mr-2">
+            📎
+          </button>
 
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900">{source.title}</h1>
-          <p className="text-xs text-blue-600 font-mono tracking-wider">Source Metadata</p>
-        </div>
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask anything about Armenia legal..."
+            className="flex-1 bg-transparent border-none focus:ring-0 text-base py-1 px-2 outline-none text-gray-800 placeholder-gray-400"
+          />
 
-        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <div>
-            <p className="text-[10px] uppercase text-gray-400 font-bold mb-1">S3 Key</p>
-            <p className="text-xs font-mono text-gray-700 break-all">{source.s3_key}</p>
+          <div className="flex items-center space-x-2 ml-2">
+            <button type="button" onClick={onVoiceClick} className="p-2 text-gray-400 hover:text-black">
+              🎤
+            </button>
+            <button type="submit" className="px-4 py-2 bg-emerald-700 text-white rounded">
+              Search
+            </button>
           </div>
-          <div>
-            <p className="text-[10px] uppercase text-gray-400 font-bold mb-1">Chunk ID</p>
-            <p className="text-xs font-mono text-gray-700">{source.chunk_id}</p>
-          </div>
-        </div>
-
-        <div className="pt-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Extracted Segment</h3>
-          <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm text-gray-800 leading-relaxed italic">
-            "{source.text_content}"
-          </div>
-        </div>
-
-        <div className="pt-8 border-t border-gray-100">
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Note: This text is a retrieved chunk from our verified legal database of Armenia. 
-            Data retrieved via Lambda and ChromaDB integration.
-          </p>
-        </div>
+        </form>
       </div>
     </div>
   );
 };
 
-export default SourceDetail;
+export default SearchBar;
